@@ -1,0 +1,111 @@
+#!/bin/bash
+
+# Script to split programming-humanity-2025 exercises into separate repos
+# Run this from the parent directory of your programming-humanity-2025 repo
+
+SOURCE_REPO="programming-humanity-2025"
+OUTPUT_DIR="split-exercises"
+
+# List of exercise files to extract
+EXERCISES=(
+    "Building_a_fake_news_classifier.ipynb"
+    "CO2 Data Cleaned (for Tableau or other).csv"
+    "axelrod_model_11012025.ipynb"
+    "axelrod_model_explanatory.ipynb"
+    "class_demo_python_multiparameter_functions.ipynb"
+    "control_structures_practice_11202025.ipynb"
+    "datacamp_statistical_thinking_intro.ipynb"
+    "miniproject_2_sentimentarcs_sealevel.ipynb"
+    "ml_dtree__Iris_Classification_2025.ipynb"
+    "model_wealth_powerlaw_11202025.ipynb"
+    "python_grammars_ast_202509.ipynb"
+    "python_loops_and_bigo_202509.ipynb"
+    "schelling_model_111025.ipynb"
+    "social_network_analysis_barbie.ipynb"
+    "zipfs_law_20251028.ipynb"
+)
+
+# Create output directory
+mkdir -p "$OUTPUT_DIR"
+
+echo "======================================"
+echo "Splitting exercises into separate repos"
+echo "======================================"
+echo ""
+
+# Counter for tracking
+count=0
+
+for exercise in "${EXERCISES[@]}"; do
+    # Generate repo name from filename (replace spaces and special chars with hyphens, lowercase)
+    repo_name=$(echo "$exercise" | sed 's/[^a-zA-Z0-9]/-/g' | sed 's/--*/-/g' | sed 's/-$//' | tr '[:upper:]' '[:lower:]')
+    
+    # Create new repo directory
+    repo_path="$OUTPUT_DIR/$repo_name"
+    
+    echo "Processing: $exercise"
+    echo "  -> Creating repo: $repo_name"
+    
+    # Create directory and initialize git
+    mkdir -p "$repo_path"
+    cd "$repo_path"
+    git init
+    
+    # Copy the exercise file
+    cp "../../$SOURCE_REPO/$exercise" .
+    
+    # Copy .gitignore
+    cp "../../$SOURCE_REPO/.gitignore" .
+    
+    # Create a simple README
+    cat > README.md << EOF
+# $exercise
+
+Programming exercise from Programming Humanity 2025 course.
+
+## About
+This exercise is part of the Programming Humanity curriculum at Kenyon College.
+
+## File
+- \`$exercise\`
+EOF
+    
+    # Add and commit
+    git add .
+    git commit -m "Initial commit: $exercise"
+    
+    cd ../..
+    
+    ((count++))
+    echo "  ✓ Completed ($count/${#EXERCISES[@]})"
+    echo ""
+done
+
+echo "======================================"
+echo "Local repos created successfully!"
+echo "======================================"
+echo ""
+echo "Next steps:"
+echo "1. Create GitHub repos for each exercise (or use the commands below with GitHub CLI)"
+echo "2. Push each local repo to GitHub"
+echo ""
+echo "GitHub CLI commands (if you have 'gh' installed):"
+echo "======================================"
+
+cd "$OUTPUT_DIR"
+for exercise in "${EXERCISES[@]}"; do
+    repo_name=$(echo "$exercise" | sed 's/[^a-zA-Z0-9]/-/g' | sed 's/--*/-/g' | sed 's/-$//' | tr '[:upper:]' '[:lower:]')
+    echo "cd $repo_name && gh repo create $repo_name --public --source=. --push && cd .."
+done
+
+echo ""
+echo "Or manual push commands (after creating repos on GitHub):"
+echo "======================================"
+
+for exercise in "${EXERCISES[@]}"; do
+    repo_name=$(echo "$exercise" | sed 's/[^a-zA-Z0-9]/-/g' | sed 's/--*/-/g' | sed 's/-$//' | tr '[:upper:]' '[:lower:]')
+    echo "cd $OUTPUT_DIR/$repo_name"
+    echo "git remote add origin git@github.com:KatherineElkins/$repo_name.git"
+    echo "git push -u origin main"
+    echo ""
+done
